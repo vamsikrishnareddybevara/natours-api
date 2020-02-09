@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
-        "MIDDLEWARES"
+        "MIDDLEWARES",
+        "endregion",
+        "slugify",
+        "virtuals"
     ]
 }
