@@ -1,15 +1,17 @@
 {
   "name": "natours",
   "version": "1.0.0",
-  "description": "Learning node, express and mongoDB",
+  "description": "A MERN stack application to book tours",
   "main": "app.js",
   "scripts": {
     "start:dev": "nodemon server.js",
-    "start:prod": "NODE_ENV=production nodemon server.js"
+    "start:prod": "SET NODE_ENV=production&& nodemon server.js",
+    "debug": "ndb server.js"
   },
-  "author": "Jonas Schmedtmann",
+  "author": "Vamsi Krishna",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "dotenv": "^7.0.0",
     "express": "^4.16.4",
     "mongoose": "^5.8.11",
