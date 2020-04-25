@@ -8,6 +8,7 @@
         "maxlength",
         "minlength",
         "natours",
+        "promisify",
         "slugify",
         "virtuals"
     ]
