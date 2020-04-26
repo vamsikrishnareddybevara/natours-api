@@ -1,8 +1,10 @@
+const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('../utils/appError');
+const sendEmail = require('../utils/email');
 
 const signToken = id => {
   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
@@ -120,8 +122,68 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
   // 2.) Generate reset random token
   const resetToken = user.createPasswordResetToken();
-
   await user.save({ validateBeforeSave: false });
+
+  // 3) Send email to user
+  const resetUrl = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/resetPassword/${resetToken}`;
+
+  const message = `Forgot your password? You can set new password here - ${resetUrl}.\n If you didn't forget your password, please ignore this!`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Natours - Set new password',
+      message
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Token sent to email'
+    });
+  } catch (err) {
+    user.createPasswordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    return next(
+      new AppError(
+        'There is an error sending mail. Please try again later.',
+        500
+      )
+    );
+  }
 });
 
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1.) Check if user exists and password is not expired
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+
+  // 2.) Set new password
+  if (!user) {
+    return next(new AppError('Invalid token or token has expired', 400));
+  }
+  const { password, passwordConfirm } = req.body;
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  // 3.) Update passwordChangedAt
+
+  // 4.) Send new token to client
+  const token = signToken(user._id);
+  res.status(201).json({
+    status: 'success',
+    token
+  });
+});
