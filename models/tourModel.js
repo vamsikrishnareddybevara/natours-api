@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+// const User = require('./userModel');
 // const validator = require('validator');
 //#region Tour Schema
 const tourSchema = mongoose.Schema(
@@ -37,7 +38,7 @@ const tourSchema = mongoose.Schema(
       type: Number,
       default: 4.5,
       min: [1, 'Rating must be above 1'],
-      max: [5, 'Rating must be above 5']
+      max: [5, 'Rating cannot exceed  5']
     },
     ratingsQuantity: {
       type: Number,
@@ -77,7 +78,37 @@ const tourSchema = mongoose.Schema(
       default: Date.now(),
       select: false
     },
-    startDates: [Date]
+    startDates: [Date],
+    startLocation: {
+      // GeoJSON data
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point']
+      },
+      coordinates: [Number],
+      address: String,
+      description: String
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point']
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number
+      }
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
+    ]
   },
   {
     toJSON: { virtuals: true },
@@ -99,6 +130,12 @@ tourSchema.pre('save', function(next) {
   next();
 });
 
+// tourSchema.pre('save', async function(next) {
+//   const guidesPromises = this.guides.map(async id => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
+
 // tourSchema.post('save', function(doc, next) {
 //   console.log(doc);
 //   next();
@@ -109,6 +146,15 @@ tourSchema.pre('save', function(next) {
 //#region  QUERY MIDDLEWARE
 tourSchema.pre(/^find/, function(next) {
   this.find({ secretTour: { $ne: true } });
+  next();
+});
+
+tourSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt'
+  });
+
   next();
 });
 
