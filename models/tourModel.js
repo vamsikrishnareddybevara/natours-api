@@ -122,6 +122,13 @@ const tourSchema = mongoose.Schema(
 tourSchema.virtual('durationInWeeks').get(function() {
   return this.duration / 7;
 });
+
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id'
+});
+
 //#endregion
 
 //#region  DOCUMENT MIDDLEWARE : runs before .save() and .create()
