@@ -118,6 +118,8 @@ const tourSchema = mongoose.Schema(
 
 //#endregion
 
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
 //#region virtual properties
 tourSchema.virtual('durationInWeeks').get(function() {
   return this.duration / 7;
