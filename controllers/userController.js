@@ -42,6 +42,11 @@ exports.createUser = (req, res) => {
   });
 };
 
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+
+  next();
+};
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1.) Throw error if posts password data
   const { password = '', passwordConfirm = '' } = req.body;
