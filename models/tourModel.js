@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 // const User = require('./userModel');
 // const validator = require('validator');
+
 //#region Tour Schema
 const tourSchema = mongoose.Schema(
   {
